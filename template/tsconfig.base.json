@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ESNext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "paths": {
+      "@nust/shared": ["./packages/shared/src/index.ts"]
+    }
+  }
+}
