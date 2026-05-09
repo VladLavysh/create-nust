@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
-import * as bcrypt from 'bcrypt'
+import * as bcrypt from 'bcryptjs'
 import { UsersService } from '../users/users.service'
 import { User } from '../users/user.entity'
 
@@ -28,7 +28,7 @@ export class AuthService {
   ) {}
 
   async register(email: string, password: string): Promise<AuthTokens> {
-    const hashedPassword = await bcrypt.hash(password, this.configService.get('BCRYPT_SALT_ROUNDS')!)
+    const hashedPassword = await bcrypt.hash(password, +this.configService.get('BCRYPT_SALT_ROUNDS'))
     const user = await this.usersService.create(email, hashedPassword)
 
     return this.generateTokens(user)

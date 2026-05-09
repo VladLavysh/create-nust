@@ -25,6 +25,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async getMe(@CurrentUser() user: User) {
     const { password, ...result } = user
+    
     return result
   }
 }
