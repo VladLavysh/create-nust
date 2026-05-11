@@ -5,9 +5,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm'
+import { IUser, UserRole } from '@nust/shared'
 
 @Entity('users')
-export class User {
+export class User implements IUser {
   @PrimaryGeneratedColumn('uuid')
   id!: string
 
@@ -19,6 +20,9 @@ export class User {
 
   @Column({ default: false })
   isEmailVerified!: boolean
+
+  @Column({ default: 'user' })
+  role!: UserRole
 
   @Column({ default: true })
   isActive!: boolean

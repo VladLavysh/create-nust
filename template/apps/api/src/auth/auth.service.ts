@@ -1,22 +1,17 @@
 import {
   Injectable,
-  UnauthorizedException,
-  ConflictException,
+  UnauthorizedException
 } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
 import * as bcrypt from 'bcryptjs'
+import { IAuthResponse } from '@nust/shared'
 import { UsersService } from '../users/users.service'
 import { User } from '../users/user.entity'
 
 export interface JwtPayload {
   sub: string
   email: string
-}
-
-export interface AuthTokens {
-  accessToken: string
-  refreshToken: string
 }
 
 @Injectable()
@@ -27,14 +22,14 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {}
 
-  async register(email: string, password: string): Promise<AuthTokens> {
+  async register(email: string, password: string): Promise<IAuthResponse> {
     const hashedPassword = await bcrypt.hash(password, +this.configService.get('BCRYPT_SALT_ROUNDS'))
     const user = await this.usersService.create(email, hashedPassword)
 
     return this.generateTokens(user)
   }
 
-  async login(email: string, password: string): Promise<AuthTokens> {
+  async login(email: string, password: string): Promise<IAuthResponse> {
     const user = await this.usersService.findByEmail(email)
 
     if (!user) {
@@ -60,7 +55,7 @@ export class AuthService {
     return user
   }
 
-  private generateTokens(user: User): AuthTokens {
+  private generateTokens(user: User): IAuthResponse {
     const payload: JwtPayload = { sub: user.id, email: user.email }
 
     const accessToken = this.jwtService.sign(payload, {
