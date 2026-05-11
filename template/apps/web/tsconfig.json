@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "preserve",
+    "lib": ["ESNext", "DOM"],
+    "baseUrl": "."
+  },
+  "include": [
+    "app/**/*",
+    ".nuxt/**/*"
+  ],
+  "exclude": ["node_modules", ".output", "dist"]
+}

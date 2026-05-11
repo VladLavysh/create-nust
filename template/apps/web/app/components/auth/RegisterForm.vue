@@ -1,0 +1,85 @@
+<template>
+  <form class="form" @submit.prevent="handleSubmit">
+    <div class="form__header">
+      <h1 class="form__title">Create an account</h1>
+      <p class="form__subtitle">Get started for free</p>
+    </div>
+
+    <div class="form__fields">
+      <AppInput
+        v-model="form.email"
+        id="email"
+        label="Email"
+        type="email"
+        placeholder="you@example.com"
+        :error="errors.email"
+      />
+      <AppInput
+        v-model="form.password"
+        id="password"
+        label="Password"
+        type="password"
+        placeholder="••••••••"
+        :error="errors.password"
+      />
+    </div>
+
+    <p v-if="errors.general" class="form__error">
+      {{ errors.general }}
+    </p>
+
+    <AppButton type="submit" variant="primary" :loading="loading">
+      Create account
+    </AppButton>
+
+    <p class="form__footer">
+      Already have an account?
+      <NuxtLink to="/auth/login">Sign in</NuxtLink>
+    </p>
+  </form>
+</template>
+
+<script setup lang="ts">
+const { register } = useAuth()
+
+const loading = ref(false)
+const form = reactive({ email: '', password: '' })
+const errors = reactive({ email: '', password: '', general: '' })
+
+function validate() {
+  errors.email = ''
+  errors.password = ''
+  errors.general = ''
+
+  if (!form.email) errors.email = 'Email is required'
+  else if (!/\S+@\S+\.\S+/.test(form.email)) errors.email = 'Invalid email'
+  if (!form.password) errors.password = 'Password is required'
+  else if (form.password.length < 8) errors.password = 'Minimum 8 characters'
+
+  return !errors.email && !errors.password
+}
+
+async function handleSubmit() {
+  if (!validate()) return
+
+  loading.value = true
+  try {
+    await register(form.email, form.password)
+  } catch (err: any) {
+    errors.general = err?.data?.message ?? 'Something went wrong'
+  } finally {
+    loading.value = false
+  }
+}
+</script>
+
+<style scoped>
+/* identical to LoginForm styles */
+.form { display: flex; flex-direction: column; gap: 1.25rem; }
+.form__header { text-align: center; }
+.form__title { font-size: 1.5rem; font-weight: 700; }
+.form__subtitle { font-size: 0.875rem; color: var(--color-text-muted); margin-top: 0.25rem; }
+.form__fields { display: flex; flex-direction: column; gap: 1rem; }
+.form__error { font-size: 0.875rem; color: var(--color-error); text-align: center; }
+.form__footer { font-size: 0.875rem; color: var(--color-text-muted); text-align: center; }
+</style>
