@@ -1,29 +1,28 @@
 export default defineNuxtPlugin(() => {
-  const config = useRuntimeConfig()
+  const config = useRuntimeConfig();
 
   const api = $fetch.create({
-    baseURL: config.public.apiBase,
+    baseURL: config.public.apiBase + "/api/v1/",
     onRequest({ options }) {
-      const token = useCookie('access_token').value
-      if (token) {
-        options.headers = {
-          ...options.headers,
-          Authorization: `Bearer ${token}`,
-        }
+      const access_token = useCookie("access_token");
+
+      if (access_token.value) {
+        options.headers = new Headers(options.headers as HeadersInit);
+        options.headers.set("Authorization", `Bearer ${access_token.value}`);
       }
     },
     onResponseError({ response }) {
       if (response.status === 401) {
-        useCookie('access_token').value = null
-        useCookie('refresh_token').value = null
-        navigateTo('/auth/login')
+        useCookie("access_token").value = null;
+        useCookie("refresh_token").value = null;
+        navigateTo("/auth/login");
       }
     },
-  })
+  });
 
   return {
     provide: {
       api,
     },
-  }
-})
+  };
+});

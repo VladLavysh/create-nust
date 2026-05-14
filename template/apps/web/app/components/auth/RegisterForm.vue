@@ -6,7 +6,7 @@
     </div>
 
     <div class="form__fields">
-      <AppInput
+      <UiAppInput
         v-model="form.email"
         id="email"
         label="Email"
@@ -14,7 +14,7 @@
         placeholder="you@example.com"
         :error="errors.email"
       />
-      <AppInput
+      <UiAppInput
         v-model="form.password"
         id="password"
         label="Password"
@@ -28,9 +28,9 @@
       {{ errors.general }}
     </p>
 
-    <AppButton type="submit" variant="primary" :loading="loading">
+    <UiAppButton type="submit" variant="primary" :loading="loading">
       Create account
-    </AppButton>
+    </UiAppButton>
 
     <p class="form__footer">
       Already have an account?

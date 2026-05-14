@@ -1,7 +1,7 @@
 <template>
   <div class="auth-page">
     <div class="auth-card">
-      <LoginForm />
+      <AuthLoginForm />
     </div>
   </div>
 </template>
