@@ -32,7 +32,6 @@ export class AuthController {
   @Get("me")
   @UseGuards(JwtAuthGuard)
   async getMe(@CurrentUser() user: User) {
-    console.log("DATA - get me");
     const { password, ...result } = user;
 
     return result;

@@ -6,10 +6,7 @@
     "skipLibCheck": true,
     "paths": {
       "@nust/shared": ["./packages/shared/dist/index.d.ts"],
-      "@nust/shared/*": ["./packages/shared/dist/*"],
-      "@nust/web/*": ["./apps/web/app/*"],
-      "@nust/api/*": ["./apps/api/src/*"],
-      "@/*": ["./"],
-    },
-  },
+      "@nust/shared/*": ["./packages/shared/dist/*"]
+    }
+  }
 }

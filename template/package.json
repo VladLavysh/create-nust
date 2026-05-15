@@ -6,8 +6,8 @@
   "license": "ISC",
   "private": true,
   "scripts": {
-    "dev": "pnpm --parallel -r dev",
-    "build": "pnpm --parallel -r build",
+    "dev": "pnpm --filter @nust/shared build && pnpm --parallel --filter @nust/api --filter @nust/web run dev",
+    "build": "pnpm --filter @nust/shared build && pnpm --parallel --filter @nust/api --filter @nust/web run build",
     "lint": "pnpm --parallel -r lint",
     "docker:db": "docker compose up postgres",
     "docker:up": "docker compose up --build",
