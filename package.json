@@ -1,8 +1,14 @@
 {
   "name": "create-nust",
   "version": "0.0.1",
-  "description": "CLI that scaffolds a production-ready **Nuxt + NestJS** monorepo so you can skip the boilerplate and start building.",  
-  "keywords": ["nuxt", "nestjs", "fullstack", "scaffold", "monorepo"],
+  "description": "CLI that scaffolds a production-ready **Nuxt + NestJS** monorepo so you can skip the boilerplate and start building.",
+  "keywords": [
+    "nuxt",
+    "nestjs",
+    "fullstack",
+    "scaffold",
+    "monorepo"
+  ],
   "author": "Vlad Lavysh",
   "license": "ISC",
   "repository": {
@@ -12,6 +18,8 @@
   "bugs": {
     "url": "https://github.com/VladLavysh/create-nust/issues"
   },
-  "homepage": "https://github.com/VladLavysh/create-nust#readme"
+  "homepage": "https://github.com/VladLavysh/create-nust#readme",
+  "scripts": {
+    "clean:template": "git clean -xfd && pnpm --dir template install --frozen-lockfile && pnpm --dir template run build"
+  }
 }
-  
