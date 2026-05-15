@@ -1,21 +1,20 @@
+import { useAuthTokens } from "../composables/useAuthTokens";
+
 export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig();
+  const { accessToken } = useAuthTokens();
 
   const api = $fetch.create({
     baseURL: config.public.apiBase + "/api/v1/",
     onRequest({ options }) {
-      const access_token = useCookie("access_token");
-
-      if (access_token.value) {
+      if (accessToken.value) {
         options.headers = new Headers(options.headers as HeadersInit);
-        options.headers.set("Authorization", `Bearer ${access_token.value}`);
+        options.headers.set("Authorization", `Bearer ${accessToken.value}`);
       }
     },
     onResponseError({ response }) {
       if (response.status === 401) {
-        useCookie("access_token").value = null;
-        useCookie("refresh_token").value = null;
-        navigateTo("/auth/login");
+        // Let auth middleware/auth-init decide when to refresh or logout.
       }
     },
   });

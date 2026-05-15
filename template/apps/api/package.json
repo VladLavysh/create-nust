@@ -3,9 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "npm --prefix ../../packages/shared run build",
+    "prebuild": "npm --prefix ../../packages/shared run build",
     "dev": "nest start --watch",
     "build": "nest build",
-    "start": "node dist/main"
+    "start": "node dist/apps/api/src/main.js"
   },
   "dependencies": {
     "@nust/shared": "workspace:*",

@@ -5,8 +5,11 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "paths": {
-      "@nust/shared": ["./packages/shared/src/index.ts"],
-      "@nust/shared/*": ["./packages/shared/src/*"]
-    }
-  }
+      "@nust/shared": ["./packages/shared/dist/index.d.ts"],
+      "@nust/shared/*": ["./packages/shared/dist/*"],
+      "@nust/web/*": ["./apps/web/app/*"],
+      "@nust/api/*": ["./apps/api/src/*"],
+      "@/*": ["./"],
+    },
+  },
 }
