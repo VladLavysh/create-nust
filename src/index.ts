@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { Command } from "commander";
 import { showBanner } from "./utils/banner.js";
 import { runCli } from "./cli.js";

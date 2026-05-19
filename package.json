@@ -1,6 +1,6 @@
 {
   "name": "create-nust",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "CLI that scaffolds a production-ready **Nuxt + NestJS** monorepo so you can skip the boilerplate and start building.",
   "type": "module",
   "bin": {

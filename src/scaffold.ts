@@ -107,11 +107,7 @@ export async function scaffold(options: ScaffoldOptions): Promise<void> {
   await setupDockerFiles(templateDir, targetDir, devMode);
 
   step("Finalizing project files…");
-  const gitignoreSrc = path.join(targetDir, "_gitignore");
-  const gitignoreDest = path.join(targetDir, ".gitignore");
-  if (await fs.pathExists(gitignoreSrc)) {
-    await fs.rename(gitignoreSrc, gitignoreDest);
-  }
+  await setupGitignore(templateDir, targetDir);
 
   step("Applying project name…");
   await replaceTokens(targetDir, projectName);
@@ -139,6 +135,24 @@ async function setupDockerFiles(
     path.join(templateDir, sourceFile),
     path.join(targetDir, "docker-compose.yml"),
   );
+}
+
+async function setupGitignore(
+  templateDir: string,
+  targetDir: string,
+): Promise<void> {
+  const dest = path.join(targetDir, ".gitignore");
+  const copied = path.join(targetDir, "_gitignore");
+  const templateSrc = path.join(templateDir, "_gitignore");
+
+  if (await fs.pathExists(copied)) {
+    await fs.rename(copied, dest);
+    return;
+  }
+
+  if (await fs.pathExists(templateSrc)) {
+    await fs.copy(templateSrc, dest);
+  }
 }
 
 async function setupEnvFile(targetDir: string): Promise<void> {

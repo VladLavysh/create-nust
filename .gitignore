@@ -1,6 +1,31 @@
-dist/
+# Dependencies
 node_modules/
+
+# Build output (CLI)
+dist/
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# npm pack artifacts
+*.tgz
+
+# Local scaffold test projects
+test_folder/
+
+# Template dev artifacts (install / build inside template/)
 template/node_modules/
 template/**/node_modules/
 template/**/.nuxt/
+template/**/.output/
 template/**/dist/
+template/**/*.tsbuildinfo
+template/.env
+template/package-lock.json
+
+# Logs & OS
+*.log
+.DS_Store
+Thumbs.db
