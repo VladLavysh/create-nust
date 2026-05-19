@@ -13,7 +13,7 @@
   "scripts": {
     "dev": "tsc --watch",
     "build": "tsc",
-    "prepublishOnly": "pnpm build",
+    "prepublishOnly": "pnpm build && node scripts/strip-for-publish.mjs",
     "clean:template": "git clean -xfd && pnpm --dir template install --frozen-lockfile && pnpm --dir template run build"
   },
   "dependencies": {

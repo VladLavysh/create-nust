@@ -1,0 +1,21 @@
+# Never ship dependencies or local build output
+node_modules/
+**/node_modules/
+
+# Scaffold test output
+test_folder/
+
+# Template dev artifacts
+template/**/.nuxt/
+template/**/.output/
+template/**/dist/
+template/**/*.tsbuildinfo
+template/.env
+template/package-lock.json
+
+# Env & pack artifacts
+.env
+.env.*
+!.env.example
+*.tgz
+*.log
