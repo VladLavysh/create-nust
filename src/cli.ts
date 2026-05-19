@@ -12,6 +12,7 @@ export async function runCli(options: CliOptions = {}) {
   p.intro(pc.bgMagenta(pc.white(" create-nust ")));
 
   let projectName = options.projectName;
+  let withPostman = false;
 
   if (!projectName) {
     const nameInput = await p.text({
@@ -59,8 +60,8 @@ export async function runCli(options: CliOptions = {}) {
       },
       {
         value: "full",
-        label: "Full Docker",
-        hint: "Everything in containers",
+        label: "Full Docker (experimental)",
+        hint: "Everything in containers — may be unstable",
       },
     ],
   });
@@ -69,6 +70,18 @@ export async function runCli(options: CliOptions = {}) {
     p.cancel("Operation cancelled");
     process.exit(0);
   }
+
+  const postmanAnswer = await p.confirm({
+    message: "Include Postman collection?",
+    initialValue: true,
+  });
+
+  if (p.isCancel(postmanAnswer)) {
+    p.cancel("Operation cancelled");
+    process.exit(0);
+  }
+
+  withPostman = postmanAnswer as boolean;
 
   const installDeps = await p.confirm({
     message: "Install dependencies?",
@@ -89,6 +102,7 @@ export async function runCli(options: CliOptions = {}) {
       targetDir,
       devMode,
       withAuth: true,
+      withPostman,
       installDeps: installDeps as boolean,
     });
     s.stop("Project scaffolded");
@@ -107,20 +121,23 @@ export async function runCli(options: CliOptions = {}) {
     devMode === "hybrid"
       ? [
           `  ${pc.dim("cd")} ${pc.cyan(projectName)}`,
-          `  ${pc.dim("cp")} ${pc.cyan(".env.example .env")}`,
           `  ${pc.dim("pnpm")} ${pc.cyan("docker:db")}`,
           `  ${pc.dim("pnpm")} ${pc.cyan("dev")}`,
         ]
       : [
           `  ${pc.dim("cd")} ${pc.cyan(projectName)}`,
-          `  ${pc.dim("cp")} ${pc.cyan(".env.example .env")}`,
           `  ${pc.dim("pnpm")} ${pc.cyan("docker:dev")}`,
         ];
+
+  const postmanNote = withPostman
+    ? `\n  ${pc.dim("Postman:")} import ${pc.cyan(`${projectName}/postman/nust.postman_collection.json`)}\n`
+    : "";
 
   p.outro(
     pc.green(`✓ Project created!\n`) +
       `\n  Next steps:\n` +
       nextSteps.join("\n") +
+      postmanNote +
       "\n",
   );
 }

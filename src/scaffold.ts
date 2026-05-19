@@ -10,6 +10,7 @@ export interface ScaffoldOptions {
   projectName: string;
   targetDir: string;
   withAuth: boolean; // False for now
+  withPostman: boolean;
   devMode: "hybrid" | "full";
   installDeps: boolean;
 }
@@ -31,10 +32,21 @@ const DOCKER_VARIANT_FILES = [
 ];
 
 export async function scaffold(options: ScaffoldOptions): Promise<void> {
-  const { projectName, targetDir, withAuth, devMode, installDeps } = options;
+  const {
+    projectName,
+    targetDir,
+    withAuth,
+    withPostman,
+    devMode,
+    installDeps,
+  } = options;
   const templateDir = path.resolve(__dirname, "../template");
 
   await fs.ensureDir(targetDir);
+
+  if (path.resolve(targetDir) === path.resolve(templateDir)) {
+    throw new Error("Cannot scaffold into the template directory.");
+  }
 
   await fs.copy(templateDir, targetDir, {
     overwrite: false,
@@ -46,7 +58,6 @@ export async function scaffold(options: ScaffoldOptions): Promise<void> {
         ".nuxt",
         ".output",
         "dist",
-        ".env",
       ];
       if (
         alwaysExcluded.some(
@@ -56,6 +67,10 @@ export async function scaffold(options: ScaffoldOptions): Promise<void> {
       )
         return false;
 
+      if (relativePath.split(path.sep).some((segment) => segment === ".env")) {
+        return false;
+      }
+
       if (DOCKER_VARIANT_FILES.some((f) => relativePath === f)) return false;
 
       if (!withAuth) {
@@ -64,6 +79,10 @@ export async function scaffold(options: ScaffoldOptions): Promise<void> {
             relativePath.startsWith(authPath) || relativePath === authPath,
         );
         if (isAuthOnly) return false;
+      }
+
+      if (!withPostman && relativePath.startsWith("postman")) {
+        return false;
       }
 
       if (devMode === "hybrid") {
@@ -79,7 +98,7 @@ export async function scaffold(options: ScaffoldOptions): Promise<void> {
     },
   });
 
-  await setupDockerFiles(targetDir, devMode);
+  await setupDockerFiles(templateDir, targetDir, devMode);
 
   const gitignoreSrc = path.join(targetDir, "_gitignore");
   const gitignoreDest = path.join(targetDir, ".gitignore");
@@ -89,27 +108,38 @@ export async function scaffold(options: ScaffoldOptions): Promise<void> {
 
   await replaceTokens(targetDir, projectName);
 
+  await setupEnvFile(targetDir);
+
   if (installDeps) {
     await runInstall(targetDir);
   }
 }
 
 async function setupDockerFiles(
+  templateDir: string,
   targetDir: string,
   devMode: "hybrid" | "full",
 ): Promise<void> {
-  if (devMode === "hybrid") {
-    await fs.copy(
-      path.join(targetDir, "docker-compose.hybrid.yml"),
-      path.join(targetDir, "docker-compose.yml"),
-    );
-  } else {
-    await fs.copy(
-      path.join(targetDir, "docker-compose.full.yml"),
-      path.join(targetDir, "docker-compose.yml"),
-    );
+  const sourceFile =
+    devMode === "hybrid"
+      ? "docker-compose.hybrid.yml"
+      : "docker-compose.full.yml";
+
+  await fs.copy(
+    path.join(templateDir, sourceFile),
+    path.join(targetDir, "docker-compose.yml"),
+  );
+}
+
+async function setupEnvFile(targetDir: string): Promise<void> {
+  const envExamplePath = path.join(targetDir, ".env.example");
+  const envPath = path.join(targetDir, ".env");
+
+  if (!(await fs.pathExists(envExamplePath))) {
+    throw new Error("Missing .env.example in template.");
   }
 
-  await fs.remove(path.join(targetDir, "docker-compose.hybrid.yml"));
-  await fs.remove(path.join(targetDir, "docker-compose.full.yml"));
+  if (!(await fs.pathExists(envPath))) {
+    await fs.copy(envExamplePath, envPath);
+  }
 }
