@@ -87,6 +87,8 @@ export async function runCli(options: CliOptions = {}) {
     await scaffold({
       projectName,
       targetDir,
+      devMode,
+      withAuth: true,
       installDeps: installDeps as boolean,
     });
     s.stop("Project scaffolded");
@@ -101,12 +103,24 @@ export async function runCli(options: CliOptions = {}) {
     process.exit(1);
   }
 
+  const nextSteps =
+    devMode === "hybrid"
+      ? [
+          `  ${pc.dim("cd")} ${pc.cyan(projectName)}`,
+          `  ${pc.dim("cp")} ${pc.cyan(".env.example .env")}`,
+          `  ${pc.dim("pnpm")} ${pc.cyan("docker:db")}`,
+          `  ${pc.dim("pnpm")} ${pc.cyan("dev")}`,
+        ]
+      : [
+          `  ${pc.dim("cd")} ${pc.cyan(projectName)}`,
+          `  ${pc.dim("cp")} ${pc.cyan(".env.example .env")}`,
+          `  ${pc.dim("pnpm")} ${pc.cyan("docker:dev")}`,
+        ];
+
   p.outro(
-    pc.green(`✓ Project created successfully!\n`) +
+    pc.green(`✓ Project created!\n`) +
       `\n  Next steps:\n` +
-      `  ${pc.dim("cd")} ${pc.cyan(projectName)}\n` +
-      `  ${pc.dim("cp")} ${pc.cyan(".env.example .env")}\n` +
-      `  ${pc.dim("pnpm")} ${pc.cyan("docker:db")}\n` +
-      `  ${pc.dim("pnpm")} ${pc.cyan("dev")}\n`,
+      nextSteps.join("\n") +
+      "\n",
   );
 }

@@ -9,12 +9,29 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export interface ScaffoldOptions {
   projectName: string;
   targetDir: string;
+  withAuth: boolean; // False for now
+  devMode: "hybrid" | "full";
   installDeps: boolean;
 }
 
-export async function scaffold(options: ScaffoldOptions): Promise<void> {
-  const { projectName, targetDir, installDeps } = options;
+const AUTH_ONLY_PATHS = [
+  path.join("apps", "api", "src", "auth"),
+  path.join("apps", "api", "src", "common"),
+  path.join("apps", "web", "app", "components", "auth"),
+  path.join("apps", "web", "app", "composables", "useAuth.ts"),
+  path.join("apps", "web", "app", "middleware", "auth.ts"),
+  path.join("apps", "web", "app", "pages", "auth"),
+];
 
+const DOCKER_VARIANT_FILES = [
+  "docker-compose.yml",
+  "docker-compose.hybrid.yml",
+  "docker-compose.full.yml",
+  "docker-compose.dev.yml",
+];
+
+export async function scaffold(options: ScaffoldOptions): Promise<void> {
+  const { projectName, targetDir, withAuth, devMode, installDeps } = options;
   const templateDir = path.resolve(__dirname, "../template");
 
   await fs.ensureDir(targetDir);
@@ -24,15 +41,45 @@ export async function scaffold(options: ScaffoldOptions): Promise<void> {
     filter: (src) => {
       const relativePath = path.relative(templateDir, src);
 
-      const excluded = ["node_modules", ".nuxt", ".output", "dist", ".env"];
+      const alwaysExcluded = [
+        "node_modules",
+        ".nuxt",
+        ".output",
+        "dist",
+        ".env",
+      ];
+      if (
+        alwaysExcluded.some(
+          (p) =>
+            relativePath.startsWith(p) || relativePath.includes(path.sep + p),
+        )
+      )
+        return false;
 
-      return !excluded.some(
-        (pattern) =>
-          relativePath.startsWith(pattern) ||
-          relativePath.includes(path.sep + pattern),
-      );
+      if (DOCKER_VARIANT_FILES.some((f) => relativePath === f)) return false;
+
+      if (!withAuth) {
+        const isAuthOnly = AUTH_ONLY_PATHS.some(
+          (authPath) =>
+            relativePath.startsWith(authPath) || relativePath === authPath,
+        );
+        if (isAuthOnly) return false;
+      }
+
+      if (devMode === "hybrid") {
+        if (
+          relativePath === path.join("apps", "api", "Dockerfile.dev") ||
+          relativePath === path.join("apps", "web", "Dockerfile.dev") ||
+          relativePath === path.join("apps", "web", "Dockerfile")
+        )
+          return false;
+      }
+
+      return true;
     },
   });
+
+  await setupDockerFiles(targetDir, devMode);
 
   const gitignoreSrc = path.join(targetDir, "_gitignore");
   const gitignoreDest = path.join(targetDir, ".gitignore");
@@ -45,4 +92,24 @@ export async function scaffold(options: ScaffoldOptions): Promise<void> {
   if (installDeps) {
     await runInstall(targetDir);
   }
+}
+
+async function setupDockerFiles(
+  targetDir: string,
+  devMode: "hybrid" | "full",
+): Promise<void> {
+  if (devMode === "hybrid") {
+    await fs.copy(
+      path.join(targetDir, "docker-compose.hybrid.yml"),
+      path.join(targetDir, "docker-compose.yml"),
+    );
+  } else {
+    await fs.copy(
+      path.join(targetDir, "docker-compose.full.yml"),
+      path.join(targetDir, "docker-compose.yml"),
+    );
+  }
+
+  await fs.remove(path.join(targetDir, "docker-compose.hybrid.yml"));
+  await fs.remove(path.join(targetDir, "docker-compose.full.yml"));
 }

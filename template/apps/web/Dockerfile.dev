@@ -1,0 +1,14 @@
+FROM node:20-alpine
+RUN npm install -g pnpm
+WORKDIR /app
+
+COPY pnpm-lock.yaml package.json pnpm-workspace.yaml ./
+COPY apps/web/package.json ./apps/web/
+COPY packages/shared/package.json ./packages/shared/
+
+RUN pnpm install
+
+ENV CHOKIDAR_USEPOLLING=true
+ENV WATCHPACK_POLLING=true
+
+CMD ["pnpm", "--filter", "@nust/web", "dev", "--host", "0.0.0.0"]
