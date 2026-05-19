@@ -1,13 +1,43 @@
 {
   "name": "create-nust",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "CLI that scaffolds a production-ready **Nuxt + NestJS** monorepo so you can skip the boilerplate and start building.",
+  "type": "module",
+  "bin": {
+    "create-nust": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "template"
+  ],
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "prepublishOnly": "pnpm build",
+    "clean:template": "git clean -xfd && pnpm --dir template install --frozen-lockfile && pnpm --dir template run build"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.9.1",
+    "commander": "^12.1.0",
+    "execa": "^9.6.1",
+    "fs-extra": "^11.3.5",
+    "picocolors": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "keywords": [
     "nuxt",
     "nestjs",
     "fullstack",
     "scaffold",
-    "monorepo"
+    "monorepo",
+    "cli"
   ],
   "author": "Vlad Lavysh",
   "license": "ISC",
@@ -18,8 +48,5 @@
   "bugs": {
     "url": "https://github.com/VladLavysh/create-nust/issues"
   },
-  "homepage": "https://github.com/VladLavysh/create-nust#readme",
-  "scripts": {
-    "clean:template": "git clean -xfd && pnpm --dir template install --frozen-lockfile && pnpm --dir template run build"
-  }
+  "homepage": "https://github.com/VladLavysh/create-nust#readme"
 }
