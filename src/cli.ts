@@ -3,13 +3,17 @@ import pc from "picocolors";
 import path from "path";
 import fs from "fs-extra";
 import { scaffold } from "./scaffold.js";
+import { brand } from "./utils/theme.js";
+import { formatProjectSummary } from "./utils/summary.js";
 
 export interface CliOptions {
   projectName?: string;
 }
 
 export async function runCli(options: CliOptions = {}) {
-  p.intro(pc.bgMagenta(pc.white(" create-nust ")));
+  p.intro(
+    `${brand.nuxt("Nuxt")} ${brand.purple("+")} ${brand.nest("Nest")} ${pc.dim("— answer a few questions to scaffold your monorepo")}`,
+  );
 
   let projectName = options.projectName;
   let withPostman = false;
@@ -94,9 +98,12 @@ export async function runCli(options: CliOptions = {}) {
   }
 
   const s = p.spinner();
+  const onProgress = (message: string) => {
+    s.message(message);
+  };
 
   try {
-    s.start("Scaffolding project");
+    s.start("Copying template files…");
     await scaffold({
       projectName,
       targetDir,
@@ -104,40 +111,25 @@ export async function runCli(options: CliOptions = {}) {
       withAuth: true,
       withPostman,
       installDeps: installDeps as boolean,
+      onProgress,
     });
-    s.stop("Project scaffolded");
-
-    if (installDeps) {
-      s.start("Installing dependencies");
-      s.stop("Dependencies installed");
-    }
+    s.stop(pc.green("Project scaffolded"));
   } catch (error) {
     s.stop(pc.red("Something went wrong"));
     console.error(error);
     process.exit(1);
   }
 
-  const nextSteps =
-    devMode === "hybrid"
-      ? [
-          `  ${pc.dim("cd")} ${pc.cyan(projectName)}`,
-          `  ${pc.dim("pnpm")} ${pc.cyan("docker:db")}`,
-          `  ${pc.dim("pnpm")} ${pc.cyan("dev")}`,
-        ]
-      : [
-          `  ${pc.dim("cd")} ${pc.cyan(projectName)}`,
-          `  ${pc.dim("pnpm")} ${pc.cyan("docker:dev")}`,
-        ];
-
-  const postmanNote = withPostman
-    ? `\n  ${pc.dim("Postman:")} import ${pc.cyan(`${projectName}/postman/nust.postman_collection.json`)}\n`
-    : "";
-
-  p.outro(
-    pc.green(`✓ Project created!\n`) +
-      `\n  Next steps:\n` +
-      nextSteps.join("\n") +
-      postmanNote +
-      "\n",
+  p.note(
+    formatProjectSummary({
+      projectName,
+      devMode,
+      withPostman,
+      withAuth: true,
+      installDeps: installDeps as boolean,
+    }),
+    "Summary",
   );
+
+  p.outro(pc.dim("Happy coding!"));
 }

@@ -13,7 +13,10 @@ export interface ScaffoldOptions {
   withPostman: boolean;
   devMode: "hybrid" | "full";
   installDeps: boolean;
+  onProgress?: (message: string) => void;
 }
+
+export type ScaffoldProgress = NonNullable<ScaffoldOptions["onProgress"]>;
 
 const AUTH_ONLY_PATHS = [
   path.join("apps", "api", "src", "auth"),
@@ -39,9 +42,12 @@ export async function scaffold(options: ScaffoldOptions): Promise<void> {
     withPostman,
     devMode,
     installDeps,
+    onProgress,
   } = options;
   const templateDir = path.resolve(__dirname, "../template");
+  const step = (message: string) => onProgress?.(message);
 
+  step("Copying template files…");
   await fs.ensureDir(targetDir);
 
   if (path.resolve(targetDir) === path.resolve(templateDir)) {
@@ -53,12 +59,7 @@ export async function scaffold(options: ScaffoldOptions): Promise<void> {
     filter: (src) => {
       const relativePath = path.relative(templateDir, src);
 
-      const alwaysExcluded = [
-        "node_modules",
-        ".nuxt",
-        ".output",
-        "dist",
-      ];
+      const alwaysExcluded = ["node_modules", ".nuxt", ".output", "dist"];
       if (
         alwaysExcluded.some(
           (p) =>
@@ -98,19 +99,28 @@ export async function scaffold(options: ScaffoldOptions): Promise<void> {
     },
   });
 
+  step(
+    devMode === "hybrid"
+      ? "Configuring Docker (Postgres only)…"
+      : "Configuring Docker (full stack)…",
+  );
   await setupDockerFiles(templateDir, targetDir, devMode);
 
+  step("Finalizing project files…");
   const gitignoreSrc = path.join(targetDir, "_gitignore");
   const gitignoreDest = path.join(targetDir, ".gitignore");
   if (await fs.pathExists(gitignoreSrc)) {
     await fs.rename(gitignoreSrc, gitignoreDest);
   }
 
+  step("Applying project name…");
   await replaceTokens(targetDir, projectName);
 
+  step("Creating .env from defaults…");
   await setupEnvFile(targetDir);
 
   if (installDeps) {
+    step("Installing dependencies (pnpm)");
     await runInstall(targetDir);
   }
 }

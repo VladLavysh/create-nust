@@ -17,7 +17,7 @@ program
   .version(pkg.version, "-v, --version")
   .argument("[project-name]", "Name of the project to create")
   .action(async (projectName?: string) => {
-    showBanner();
+    showBanner({ version: pkg.version });
     await runCli({ projectName });
   });
 
