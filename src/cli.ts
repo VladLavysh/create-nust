@@ -5,6 +5,7 @@ import fs from "fs-extra";
 import { scaffold } from "./scaffold.js";
 import { brand } from "./utils/theme.js";
 import { formatProjectSummary } from "./utils/summary.js";
+import type { AuthType } from "./utils/summary.js";
 
 export interface CliOptions {
   projectName?: string;
@@ -75,6 +76,32 @@ export async function runCli(options: CliOptions = {}) {
     process.exit(0);
   }
 
+  const authType = await p.select({
+    message: "Authentication",
+    options: [
+      {
+        value: "jwt",
+        label: "JWT",
+        hint: "Access + refresh tokens (Bearer header)",
+      },
+      {
+        value: "session",
+        label: "Sessions",
+        hint: "httpOnly cookie + Redis store",
+      },
+      {
+        value: "none",
+        label: "No authentication",
+        hint: "Skip auth modules and pages",
+      },
+    ],
+  });
+
+  if (p.isCancel(authType)) {
+    p.cancel("Operation cancelled");
+    process.exit(0);
+  }
+
   const postmanAnswer = await p.confirm({
     message: "Include Postman collection?",
     initialValue: true,
@@ -108,7 +135,7 @@ export async function runCli(options: CliOptions = {}) {
       projectName,
       targetDir,
       devMode,
-      withAuth: true,
+      authType: authType as AuthType,
       withPostman,
       installDeps: installDeps as boolean,
       onProgress,
@@ -125,7 +152,7 @@ export async function runCli(options: CliOptions = {}) {
       projectName,
       devMode,
       withPostman,
-      withAuth: true,
+      authType: authType as AuthType,
       installDeps: installDeps as boolean,
     }),
     "Summary",

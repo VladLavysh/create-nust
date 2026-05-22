@@ -3,10 +3,14 @@
   "compilerOptions": {
     "module": "CommonJS",
     "moduleResolution": "node",
+    "baseUrl": ".",
     "outDir": "./dist",
     "incremental": true,
     "emitDecoratorMetadata": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "paths": {
+      "@api/*": ["src/*"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

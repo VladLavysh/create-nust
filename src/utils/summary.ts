@@ -1,28 +1,30 @@
 import pc from "picocolors";
 import { brand } from "./theme.js";
 
-/** Secondary text — readable but softer than primary. */
 const soft = (s: string) => pc.white(s);
+
+export type AuthType = "jwt" | "session" | "none";
 
 export interface ProjectSummaryOptions {
   projectName: string;
   devMode: "hybrid" | "full";
   withPostman: boolean;
-  withAuth: boolean;
+  authType: AuthType;
   installDeps: boolean;
 }
 
 export function formatProjectSummary(options: ProjectSummaryOptions): string {
-  const { projectName, devMode, withPostman, withAuth, installDeps } = options;
+  const { projectName, devMode, withPostman, authType, installDeps } = options;
 
   const lines: string[] = [
     pc.green("✓") + " " + pc.bold(`Project ${pc.cyan(projectName)} is ready`),
     "",
     sectionTitle("Your stack"),
     row("Mode", devModeLabel(devMode)),
+    row("Docker", dockerLabel(authType, devMode)),
     row("Web", `${brand.nuxt("http://localhost:3000")} ${soft("(Nuxt)")}`),
     row("API", `${brand.nest("http://localhost:3001")} ${soft("(Nest)")}`),
-    row("Auth", withAuth ? pc.green("JWT included") : soft("disabled")),
+    row("Auth", authTypeLabel(authType)),
     row("Env", soft(".env created from .env.example")),
     row(
       "Postman",
@@ -32,13 +34,20 @@ export function formatProjectSummary(options: ProjectSummaryOptions): string {
     ),
     "",
     sectionTitle("Get started"),
-    ...getStartedSteps(projectName, devMode, installDeps),
+    ...getStartedSteps(projectName, devMode, authType, installDeps),
   ];
 
-  if (devMode === "hybrid") {
+  if (authType === "jwt" && devMode === "hybrid") {
+    lines.push("");
+    lines.push(soft("  Tip: change JWT secrets in .env before deploying."));
+  }
+
+  if (authType === "session" && devMode === "hybrid") {
     lines.push("");
     lines.push(
-      soft("  Tip: change JWT secrets in .env before deploying."),
+      soft(
+        "  Tip: API calls are proxied through Nuxt so session cookies work on localhost.",
+      ),
     );
   }
 
@@ -54,20 +63,50 @@ function row(label: string, value: string): string {
   return `    ${soft(pad)} ${value}`;
 }
 
+function authTypeLabel(authType: AuthType): string {
+  if (authType === "jwt") return pc.green("JWT (access + refresh tokens)");
+  if (authType === "session")
+    return pc.green("Sessions (Redis + httpOnly cookie)");
+  return soft("not included");
+}
+
+function dockerLabel(authType: AuthType, devMode: "hybrid" | "full"): string {
+  if (devMode === "full") {
+    if (authType === "session") {
+      return soft("Postgres + Redis + apps in containers");
+    }
+    if (authType === "jwt") {
+      return soft("Postgres + apps in containers");
+    }
+    return soft("All services in containers");
+  }
+
+  if (authType === "jwt" || authType === "none") {
+    return soft("Postgres in Docker");
+  }
+  if (authType === "session") {
+    return soft("Postgres + Redis in Docker");
+  }
+  return soft("not required");
+}
+
 function devModeLabel(devMode: "hybrid" | "full"): string {
   if (devMode === "hybrid") {
-    return `${brand.purple("Hybrid")} ${soft("— Postgres in Docker, apps on host")}`;
+    return `${brand.purple("Hybrid")} ${soft("(apps on localhost)")}`;
   }
-  return `${brand.purple("Full Docker")} ${soft("— experimental, all services in containers")}`;
+  return `${brand.purple("Full Docker")} ${soft("(apps in containers)")}`;
 }
 
 function getStartedSteps(
   projectName: string,
   devMode: "hybrid" | "full",
+  authType: AuthType,
   installDeps: boolean,
 ): string[] {
-  const cmd = (script: string) =>
-    `    ${soft("$")} ${soft("cd")} ${pc.cyan(projectName)} ${soft("&&")} ${soft("pnpm")} ${pc.cyan(script)}`;
+  const cmd = (script: string, comment?: string) => {
+    const suffix = comment ? ` ${pc.dim(`# ${comment}`)}` : "";
+    return `    ${soft("$")} ${soft("cd")} ${pc.cyan(projectName)} ${soft("&&")} ${soft("pnpm")} ${pc.cyan(script)}${suffix}`;
+  };
 
   const steps: string[] = [];
 
@@ -78,10 +117,12 @@ function getStartedSteps(
   }
 
   if (devMode === "hybrid") {
-    steps.push(cmd("docker:db"));
-    steps.push(
-      `    ${soft("$")} ${soft("cd")} ${pc.cyan(projectName)} ${soft("&&")} ${soft("pnpm")} ${pc.cyan("dev")} ${pc.dim("# web :3000 + api :3001")}`,
-    );
+    if (authType === "jwt" || authType === "none") {
+      steps.push(cmd("docker:db", "Postgres in Docker"));
+    } else if (authType === "session") {
+      steps.push(cmd("docker:db", "Postgres + Redis in Docker"));
+    }
+    steps.push(cmd("dev", "web :3000 + api :3001"));
   } else {
     steps.push(cmd("docker:dev"));
     steps.push(

@@ -1,17 +1,19 @@
-import { UserRole } from '../enums/role.enum'
+import { UserRole } from "../enums/role.enum";
 
 export interface IUser {
-  id: string
-  email: string
-  password: string
-  isEmailVerified: boolean
-  role: UserRole
-  isActive: boolean
-  createdAt: Date
-  updatedAt: Date
+  id: string;
+  email: string;
+  password: string;
+  isEmailVerified: boolean;
+  role: UserRole;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
+export type IUserPublic = Omit<IUser, "password">;
+
 export interface IAuthTokens {
-  accessToken: string
-  refreshToken: string
+  accessToken: string;
+  refreshToken: string;
 }
