@@ -41,7 +41,7 @@ export class AuthService {
   ): Promise<IUserPublic> {
     const user = await this.usersService.findByEmail(email);
 
-    if (!user) {
+    if (!user || !user.password) {
       throw new UnauthorizedException("Invalid credentials");
     }
 
@@ -74,4 +74,6 @@ export class AuthService {
     session.userId = user.id;
     session.email = user.email;
   }
+
+  // __OAUTH_SERVICE_METHODS__
 }

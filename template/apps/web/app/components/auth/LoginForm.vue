@@ -32,6 +32,9 @@
       Sign in
     </UiAppButton>
 
+    <!-- __OAUTH_BUTTONS_START__ -->
+    <!-- __OAUTH_BUTTONS_END__ -->
+
     <p class="form__footer">
       Don't have an account?
       <NuxtLink to="/auth/register">Register</NuxtLink>

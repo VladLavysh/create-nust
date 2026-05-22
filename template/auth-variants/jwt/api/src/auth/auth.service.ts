@@ -32,7 +32,7 @@ export class AuthService {
   async login(email: string, password: string): Promise<IAuthResponse> {
     const user = await this.usersService.findByEmail(email);
 
-    if (!user) {
+    if (!user || !user.password) {
       throw new UnauthorizedException("Invalid credentials");
     }
 
@@ -88,4 +88,6 @@ export class AuthService {
 
     return { accessToken, refreshToken };
   }
+
+  // __OAUTH_SERVICE_METHODS__
 }

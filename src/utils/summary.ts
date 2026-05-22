@@ -1,5 +1,8 @@
 import pc from "picocolors";
 import { brand } from "./theme.js";
+import type { AuthProvider } from "./apply-oauth-markers.js";
+
+export type { AuthProvider };
 
 const soft = (s: string) => pc.white(s);
 
@@ -10,11 +13,19 @@ export interface ProjectSummaryOptions {
   devMode: "hybrid" | "full";
   withPostman: boolean;
   authType: AuthType;
+  authProviders: AuthProvider[];
   installDeps: boolean;
 }
 
 export function formatProjectSummary(options: ProjectSummaryOptions): string {
-  const { projectName, devMode, withPostman, authType, installDeps } = options;
+  const {
+    projectName,
+    devMode,
+    withPostman,
+    authType,
+    authProviders,
+    installDeps,
+  } = options;
 
   const lines: string[] = [
     pc.green("✓") + " " + pc.bold(`Project ${pc.cyan(projectName)} is ready`),
@@ -25,6 +36,7 @@ export function formatProjectSummary(options: ProjectSummaryOptions): string {
     row("Web", `${brand.nuxt("http://localhost:3000")} ${soft("(Nuxt)")}`),
     row("API", `${brand.nest("http://localhost:3001")} ${soft("(Nest)")}`),
     row("Auth", authTypeLabel(authType)),
+    row("OAuth", oauthLabel(authProviders)),
     row("Env", soft(".env created from .env.example")),
     row(
       "Postman",
@@ -51,6 +63,22 @@ export function formatProjectSummary(options: ProjectSummaryOptions): string {
     );
   }
 
+  if (authProviders.length > 0) {
+    lines.push("");
+    lines.push(
+      soft(
+        "  Tip: set OAuth client IDs and callback URLs in .env (see README).",
+      ),
+    );
+    if (authType === "jwt") {
+      lines.push(
+        soft(
+          "  OAuth start URLs use API_URL — open login and use the provider buttons.",
+        ),
+      );
+    }
+  }
+
   return lines.join("\n");
 }
 
@@ -68,6 +96,14 @@ function authTypeLabel(authType: AuthType): string {
   if (authType === "session")
     return pc.green("Sessions (Redis + httpOnly cookie)");
   return soft("not included");
+}
+
+function oauthLabel(authProviders: AuthProvider[]): string {
+  if (authProviders.length === 0) return soft("not included");
+  const names = authProviders.map(
+    (p) => p.charAt(0).toUpperCase() + p.slice(1),
+  );
+  return pc.green(names.join(", "));
 }
 
 function dockerLabel(authType: AuthType, devMode: "hybrid" | "full"): string {

@@ -16,6 +16,7 @@ import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
 import { User } from "@api/users/user.entity";
+// __OAUTH_CONTROLLER_IMPORTS__
 
 @Controller("auth")
 export class AuthController {
@@ -60,4 +61,6 @@ export class AuthController {
     });
     return { ok: true };
   }
+
+  // __OAUTH_CONTROLLER_ROUTES__
 }

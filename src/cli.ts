@@ -6,6 +6,7 @@ import { scaffold } from "./scaffold.js";
 import { brand } from "./utils/theme.js";
 import { formatProjectSummary } from "./utils/summary.js";
 import type { AuthType } from "./utils/summary.js";
+import type { AuthProvider } from "./utils/apply-oauth-markers.js";
 
 export interface CliOptions {
   projectName?: string;
@@ -102,6 +103,45 @@ export async function runCli(options: CliOptions = {}) {
     process.exit(0);
   }
 
+  let authProviders: AuthProvider[] = [];
+
+  if (authType !== "none") {
+    const oauthSelection = await p.multiselect({
+      message: "OAuth providers (optional)",
+      options: [
+        {
+          value: "google",
+          label: "Google",
+          hint: "Sign in with Google",
+        },
+        {
+          value: "github",
+          label: "GitHub",
+          hint: "Sign in with GitHub",
+        },
+        {
+          value: "none",
+          label: "None — email/password only",
+        },
+      ],
+      required: false,
+    });
+
+    if (p.isCancel(oauthSelection)) {
+      p.cancel("Operation cancelled");
+      process.exit(0);
+    }
+
+    const selected = (oauthSelection ?? []) as string[];
+    if (selected.includes("none")) {
+      authProviders = [];
+    } else {
+      authProviders = selected.filter(
+        (p): p is AuthProvider => p === "google" || p === "github",
+      );
+    }
+  }
+
   const postmanAnswer = await p.confirm({
     message: "Include Postman collection?",
     initialValue: true,
@@ -136,6 +176,7 @@ export async function runCli(options: CliOptions = {}) {
       targetDir,
       devMode,
       authType: authType as AuthType,
+      authProviders,
       withPostman,
       installDeps: installDeps as boolean,
       onProgress,
@@ -153,6 +194,7 @@ export async function runCli(options: CliOptions = {}) {
       devMode,
       withPostman,
       authType: authType as AuthType,
+      authProviders,
       installDeps: installDeps as boolean,
     }),
     "Summary",
